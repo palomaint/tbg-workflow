@@ -1,0 +1,1853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Truth Below Ground - Company Analysis Workflow v2</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #e8e8e8;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            color: #d4a373;
+            margin-bottom: 8px;
+        }
+        
+        .subtitle {
+            color: #94a3b8;
+            font-size: 0.95rem;
+        }
+        
+        .badges {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .badge {
+            background: rgba(212, 163, 115, 0.15);
+            border: 1px solid #d4a373;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            color: #d4a373;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+        
+        .tab:hover, .tab.active {
+            background: #d4a373;
+            color: #1a1a2e;
+            border-color: #d4a373;
+        }
+        
+        .content {
+            display: none;
+        }
+        
+        .content.active {
+            display: block;
+        }
+        
+        /* Workflow Timeline */
+        .workflow-container {
+            position: relative;
+            padding: 20px 0;
+        }
+        
+        .phase {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .phase::before {
+            content: '';
+            position: absolute;
+            left: 30px;
+            top: 100%;
+            width: 2px;
+            height: 20px;
+            background: #d4a373;
+        }
+        
+        .phase:last-child::before {
+            display: none;
+        }
+        
+        .phase-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .phase-number {
+            width: 40px;
+            height: 40px;
+            background: #d4a373;
+            color: #1a1a2e;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+        
+        .phase-title {
+            font-size: 1.2rem;
+            color: #d4a373;
+        }
+        
+        .phase-duration {
+            margin-left: auto;
+            background: rgba(212, 163, 115, 0.2);
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            color: #d4a373;
+        }
+        
+        .phase-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .task-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            padding: 15px;
+            border-left: 3px solid #d4a373;
+        }
+        
+        .task-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+        
+        .task-owner {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(212, 163, 115, 0.15);
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            color: #d4a373;
+            margin-bottom: 8px;
+        }
+        
+        .task-description {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            line-height: 1.5;
+        }
+        
+        .gate {
+            background: linear-gradient(90deg, rgba(212, 163, 115, 0.1), rgba(212, 163, 115, 0.05));
+            border: 2px dashed #d4a373;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin: 10px 0 20px 0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .gate-icon {
+            font-size: 1.5rem;
+        }
+        
+        .gate-info h4 {
+            color: #d4a373;
+            font-size: 0.95rem;
+        }
+        
+        .gate-info p {
+            font-size: 0.8rem;
+            color: #94a3b8;
+        }
+        
+        /* Naming Convention Section */
+        .naming-section {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .naming-title {
+            color: #d4a373;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .code-block {
+            background: rgba(0,0,0,0.3);
+            border-radius: 6px;
+            padding: 15px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.85rem;
+            color: #86efac;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        
+        .code-comment {
+            color: #94a3b8;
+        }
+        
+        .highlight {
+            background: rgba(212, 163, 115, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #d4a373;
+        }
+        
+        /* Team Section */
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        
+        .team-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+        
+        .team-card:hover {
+            border-color: #d4a373;
+            transform: translateY(-2px);
+        }
+        
+        .team-initials {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #d4a373, #a67c52);
+            color: #1a1a2e;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+        }
+        
+        .team-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .team-role {
+            font-size: 0.85rem;
+            color: #d4a373;
+            margin-bottom: 10px;
+        }
+        
+        .team-groups {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+        
+        .group-tag {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .group-tag.junta {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+        }
+        
+        .group-tag.g1 {
+            background: rgba(59, 130, 246, 0.2);
+            color: #93c5fd;
+        }
+        
+        .group-tag.g2 {
+            background: rgba(34, 197, 94, 0.2);
+            color: #86efac;
+        }
+        
+        .group-tag.g3 {
+            background: rgba(168, 85, 247, 0.2);
+            color: #d8b4fe;
+        }
+        
+        /* RACI Table */
+        .raci-container {
+            overflow-x: auto;
+        }
+        
+        .raci-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            min-width: 900px;
+        }
+        
+        .raci-table th, .raci-table td {
+            padding: 12px 8px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .raci-table th {
+            background: rgba(212, 163, 115, 0.2);
+            color: #d4a373;
+            font-weight: 600;
+        }
+        
+        .raci-table th:first-child, .raci-table td:first-child {
+            text-align: left;
+            min-width: 220px;
+        }
+        
+        .raci-table tr:nth-child(even) {
+            background: rgba(255,255,255,0.02);
+        }
+        
+        .raci-r { color: #ef4444; font-weight: bold; }
+        .raci-a { color: #d4a373; font-weight: bold; }
+        .raci-c { color: #3b82f6; }
+        .raci-i { color: #94a3b8; }
+        
+        .legend {
+            display: flex;
+            gap: 20px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+            font-size: 0.8rem;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        /* Report Structure */
+        .report-structure {
+            display: grid;
+            gap: 10px;
+        }
+        
+        .section-item {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 15px;
+            display: grid;
+            grid-template-columns: 40px 1fr auto;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .section-num {
+            width: 35px;
+            height: 35px;
+            background: rgba(212, 163, 115, 0.2);
+            color: #d4a373;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        
+        .section-info h4 {
+            color: #fff;
+            margin-bottom: 4px;
+        }
+        
+        .section-info p {
+            color: #94a3b8;
+            font-size: 0.8rem;
+        }
+        
+        .section-owner {
+            background: rgba(212, 163, 115, 0.15);
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            color: #d4a373;
+        }
+        
+        /* Rules Box */
+        .rules-box {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .rules-box h3 {
+            color: #fca5a5;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .rules-box ul {
+            color: #e8e8e8;
+            font-size: 0.9rem;
+            line-height: 1.8;
+            padding-left: 20px;
+        }
+        
+        .rules-box li {
+            margin-bottom: 8px;
+        }
+        
+        /* Checklist */
+        .checklist-section {
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .checklist-title {
+            color: #d4a373;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+        
+        .checklist-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .checklist-item:last-child {
+            border-bottom: none;
+        }
+        
+        .checklist-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #d4a373;
+            cursor: pointer;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        
+        .checklist-item label {
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        /* Info boxes */
+        .info-box {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .info-box h4 {
+            color: #93c5fd;
+            margin-bottom: 8px;
+        }
+        
+        .info-box p {
+            color: #94a3b8;
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+        
+        .success-box {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .success-box h4 {
+            color: #86efac;
+            margin-bottom: 8px;
+        }
+        
+        .success-box p {
+            color: #94a3b8;
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+        
+        @media (max-width: 768px) {
+            h1 { font-size: 1.6rem; }
+            .phase-content { grid-template-columns: 1fr; }
+            .tabs { gap: 5px; }
+            .tab { padding: 8px 12px; font-size: 0.8rem; }
+            .section-item { grid-template-columns: 1fr; gap: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⛏️ Truth Below Ground</h1>
+            <p class="subtitle">Company Analysis Workflow v2.0 — Revised</p>
+            <div class="badges">
+                <span class="badge">PMI Best Practices</span>
+                <span class="badge">CIPD Standards</span>
+                <span class="badge">Stage-Gate Model</span>
+                <span class="badge">Industry Standard: 50-100 pages</span>
+            </div>
+        </header>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="showTab('workflow')">📋 Workflow</div>
+            <div class="tab" onclick="showTab('naming')">📁 Naming & Folders</div>
+            <div class="tab" onclick="showTab('structure')">📄 Report Structure</div>
+            <div class="tab" onclick="showTab('team')">👥 Team & Groups</div>
+            <div class="tab" onclick="showTab('raci')">📊 RACI Matrix</div>
+            <div class="tab" onclick="showTab('checklist')">✅ Quality Gates</div>
+        </div>
+        
+        <!-- WORKFLOW TAB -->
+        <div id="workflow" class="content active">
+            <div class="workflow-container">
+                
+                <!-- Phase 0 -->
+                <div class="phase">
+                    <div class="phase-header">
+                        <div class="phase-number">0</div>
+                        <div class="phase-title">Company Selection (Community Vote)</div>
+                        <div class="phase-duration">Ongoing → Trigger</div>
+                    </div>
+                    <div class="phase-content">
+                        <div class="task-card">
+                            <div class="task-owner">IP - Workflow Trigger</div>
+                            <div class="task-title">Monitor Community Voting</div>
+                            <div class="task-description">IP monitors the community platform for voting results. When a company receives sufficient votes, IP triggers the workflow by notifying AB and FC.</div>
+                        </div>
+                        <div class="task-card">
+                            <div class="task-owner">IP → AB, FC</div>
+                            <div class="task-title">Workflow Initiation</div>
+                            <div class="task-description">IP sends notification: "Company [NAME] selected by community vote. Ready to initiate workflow." FC and AB acknowledge to proceed.</div>
+                        </div>
+                    </div>
+                    <div class="gate">
+                        <div class="gate-icon">🚦</div>
+                        <div class="gate-info">
+                            <h4>GATE 0: Workflow Trigger</h4>
+                            <p>IP confirms community vote → AB acknowledges → FC creates project folder</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Phase 1 -->
+                <div class="phase">
+                    <div class="phase-header">
+                        <div class="phase-number">1</div>
+                        <div class="phase-title">Project Setup & Data Gathering</div>
+                        <div class="phase-duration">5-7 days</div>
+                    </div>
+                    <div class="phase-content">
+                        <div class="task-card">
+                            <div class="task-owner">FC - Finance Lead</div>
+                            <div class="task-title">Create Master Folder Structure</div>
+                            <div class="task-description">
+                                Create folder in IGAN shared drive:<br>
+                                <code style="color: #86efac;">/TBG_[COMPANY]_[YYYY-MM]/</code><br><br>
+                                With subfolders: <code>/01_Source_Data/</code>, <code>/02_Working/</code>, <code>/03_Final/</code>
+                            </div>
+                        </div>
+                        <div class="task-card">
+                            <div class="task-owner">FC - Finance Lead</div>
+                            <div class="task-title">Compile Public Information</div>
+                            <div class="task-description">
+                                Gather all publicly available data and save to <code>/01_Source_Data/</code><br><br>
+                                Create source index document listing all materials collected.
+                            </div>
+                        </div>
+                        <div class="task-card">
+                            <div class="task-owner">FC - Finance Lead</div>
+                            <div class="task-title">Create Trello Card</div>
+                            <div class="task-description">
+                                New card titled: <code>[COMPANY] - [Month Year]</code><br><br>
+                                Assign all SMEs with their sections. Set due dates. Link to shared drive folder.
+                            </div>
+                        </div>
+                        <div class="task-card">
+                            <div class="task-owner">AB - Coordinator</div>
+                            <div class="task-title">Establish Timeline</div>
+                            <div class="task-description">
+                                Set milestone dates in Trello:<br>
+                                • Phase 2 deadline (technical drafts)<br>
+                                • Phase 3 deadline (integration)<br>
+                                • Phase 4 deadline (bilingual QA)<br>
+                                • Target publication date
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Phase 2 -->
+                <div class="phase">
+                    <div class="phase-header">
+                        <div class="phase-number">2</div>
+                        <div class="phase-title">Technical Analysis (Parallel Work)</div>
+                        <div class="phase-duration">10-14 days</div>
+                    </div>
+                    
+                    <div class="rules-box">
+                        <h3>⚠️ Critical Rules for Phase 2</h3>
+                        <ul>
+                            <li><strong>LANGUAGE:</strong> Each SME writes their section in BOTH Spanish AND English from the start (two files)</li>
+                            <li><strong>SAVE LOCATION:</strong> All working files go in <code>/02_Working/[INITIALS]/</code> — NO offline copies</li>
+                            <li><strong>NAMING:</strong> Use format <code>[COMPANY]_[Section]_[INITIALS]_v[X]_[ES/EN].docx</code></li>
+                            <li><strong>NO OFFLINE COPIES:</strong> Always work from shared drive. If you need offline, sync the folder.</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="phase-content">
+                        <div class="task-card">
+                            <div class="task-owner">MB - Geology</div>
+                            <div class="task-title">Geological Assessment</div>
+                            <div class="task-description">
+                                Resource evaluation, deposit characteristics, exploration potential.<br><br>
+                                <strong>Files:</strong><br>
+                                <code>[COMPANY]_Geology_MB_v1_ES.docx</code><br>
+                                <code>[COMPANY]_Geology_MB_v1_EN.docx</code>
+                            </div>
+                        </div>
+                        <div class="task-card">
+                            <div class="task-owner">IV - Mining</div>
+                            <div class="task-title">Mining Operations Analysis</div>
+                            <div class="task-description">
+                                Extraction methods, operational efficiency, production capacity.<br><br>
+                                <strong>Files:</strong><br>
+                                <code>[COMPANY]_Mining_IV_v1_ES.docx</code><br>
+                                <code>[COMPANY]_Mining_IV_v1_EN.docx</code>
+                            </div>
+                        </div>
+                        <div class="task-card">
+                            <div class="task-owner">SA - Metallurgy</div>
+                            <div class="task-title">Metallurgical Assessment</div>
+                            <div class="task-description">
+                                Processing methods, recovery rates, product quality.<br><br>
+                                <strong>Files:</strong><br>
+                                <code>[COMPANY]_Metallurgy_SA_v1_ES.docx</code><br>
+                                <code>[COMPANY]_Metallurgy_SA_v1_EN.docx</code>
+                            </div>
+                        </div>
+                        <div class="task-card">
+                            <div class="task-owner">IL - Risk/ESG</div>
+                            <div class="task-title">Risk & ESG Assessment</div>
+                            <div class="task-description">
+                                Environmental compliance, social license, governance. Also provides input for Risks section summary.<br><br>
+                                <strong>Files:</strong><br>
+                                <code>[COMPANY]_RiskESG_IL_v1_ES.docx</code><br>
+                                <code>[COMPANY]_RiskESG_IL_v1_EN.docx</code>
+                            </div>
+                        </div>
+                        <div class="task-card">
+                            <div class="task-owner">PO - Leadership</div>
+                            <div class="task-title">Management Assessment</div>
+                            <div class="task-description">
+                                Leadership team evaluation, track record, organizational capability.<br><br>
+                                <strong>Files:</strong><br>
+                                <code>[COMPANY]_Management_PO_v1_ES.docx</code><br>
+                                <code>[COMPANY]_Management_PO_v1_EN.docx</code>
+                            </div>
+                        </div>
+                        <div class="task-card">
+                            <div class="task-owner">FC - Finance</div>
+                            <div class="task-title">Financial Analysis (Parallel)</div>
+                            <div class="task-description">
+                                Financial metrics, comparable analysis. Valuation model started but NOT conclusion.<br><br>
+                                <strong>Files:</strong><br>
+                                <code>[COMPANY]_Finance_FC_v1_ES.docx</code><br>
+                                <code>[COMPANY]_Finance_FC_v1_EN.docx</code>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="info-box">
+                        <h4>📝 Version Control Rule</h4>
+                        <p>When updating a file, increment version: v1 → v2 → v3. Keep previous versions in <code>/02_Working/[INITIALS]/Archive/</code>. The highest version number in the main folder is always the current working version.</p>
+                    </div>
+                    
+                    <div class="gate">
+                        <div class="gate-icon">🚦</div>
+                        <div class="gate-info">
+                            <h4>GATE 1: Technical Review</h4>
+                            <p>Group 1 (SA, IV, FC, MB) cross-review technical sections • Each SME marks Trello task complete when both language versions uploaded</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Phase 3 -->
+                <div class="phase">
+                    <div class="phase-header">
+                        <div class="phase-number">3</div>
+                        <div class="phase-title">Integration & First Draft</div>
+                        <div class="phase-duration">5-7 days</div>
+                    </div>
+                    <div class="phase-content">
+                        <div class="task-card">
+                            <div class="task-owner">FC - Lead Compiler</div>
+                            <div class="task-title">Create Master Report Files</div>
+                            <div class="task-description">
+                                FC creates the integrated master documents:<br><br>
+                                <code style="color: #86efac;">/03_Final/[COMPANY]_MASTER_v1_ES.docx</code><br>
+                                <code style="color: #86efac;">/03_Final/[COMPANY]_MASTER_v1_EN.docx</code><br><br>
+                                Integrates all SME sections following report structure. Applies consistent formatting.
+                            </div>
+                        </div>
+                        <div class="task-card">
+                            <div class="task-owner">FC - Finance</div>
+                            <div class="task-title">Write Introduction & Commodity Section</div>
+                            <div class="task-description">
+                                Creates the front sections: Introduction, Commodity market overview, Relevant accolades.
+                            </div>
+                        </div>
+                        <div class="task-card">
+                            <div class="task-owner">IL + FC</div>
+                            <div class="task-title">Compile Risks & Opportunities Summary</div>
+                            <div class="task-description">
+                                IL provides risk inputs, FC compiles the executive summary of Risks & Opportunities section.
+                            </div>
+                        </div>
+                        <div class="task-card">
+                            <div class="task-owner">ALL SMEs</div>
+                            <div class="task-title">Review Integrated Sections</div>
+                            <div class="task-description">
+                                Each SME reviews how their section was integrated. Flag any errors or formatting issues in Trello comments.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="info-box">
+                        <h4>📍 Single Source of Truth</h4>
+                        <p>From this point forward, the ONLY documents that matter are in <code>/03_Final/</code>. All edits happen on the MASTER files. Working folder (<code>/02_Working/</code>) is now archived reference only.</p>
+                    </div>
+                    
+                    <div class="gate">
+                        <div class="gate-icon">🚦</div>
+                        <div class="gate-info">
+                            <h4>GATE 2: Integration Check</h4>
+                            <p>Group 2 (PO, IL) verify narrative coherence • All SMEs confirm their sections are correctly integrated</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Phase 4 -->
+                <div class="phase">
+                    <div class="phase-header">
+                        <div class="phase-number">4</div>
+                        <div class="phase-title">Valuation & Bilingual QA</div>
+                        <div class="phase-duration">5-7 days</div>
+                    </div>
+                    <div class="phase-content">
+                        <div class="task-card">
+                            <div class="task-owner">FC - Finance</div>
+                            <div class="task-title">Complete Valuation & Conclusion</div>
+                            <div class="task-description">
+                                Now that all technical sections are integrated, FC completes the valuation model and writes the conclusion.<br><br>
+                                <strong>Note:</strong> Conclusion cannot be written until all other sections are substantially complete.
+                            </div>
+                        </div>
+                        <div class="task-card">
+                            <div class="task-owner">PO - English QA Lead</div>
+                            <div class="task-title">English Version Quality Review</div>
+                            <div class="task-description">
+                                PO reviews the entire English MASTER document for:<br>
+                                • Natural English phrasing<br>
+                                • Typos and grammar<br>
+                                • Terminology consistency<br><br>
+                                Marks corrections directly in document using Track Changes.
+                            </div>
+                        </div>
+                        <div class="task-card">
+                            <div class="task-owner">IV, IL</div>
+                            <div class="task-title">Bilingual Consistency Check</div>
+                            <div class="task-description">
+                                Verify technical terms match between Spanish and English versions. Flag any discrepancies.
+                            </div>
+                        </div>
+                        <div class="task-card">
+                            <div class="task-owner">FC</div>
+                            <div class="task-title">Incorporate QA Feedback</div>
+                            <div class="task-description">
+                                Accept/reject Track Changes from PO's review. Update version number: v1 → v2
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Phase 5 -->
+                <div class="phase">
+                    <div class="phase-header">
+                        <div class="phase-number">5</div>
+                        <div class="phase-title">Final Review & Approval</div>
+                        <div class="phase-duration">3-4 days</div>
+                    </div>
+                    <div class="phase-content">
+                        <div class="task-card">
+                            <div class="task-owner">AB - Coordinator (Responsible)</div>
+                            <div class="task-title">Coordinate Final Review</div>
+                            <div class="task-description">
+                                AB sends notification to all team members:<br>
+                                "Final review open for [COMPANY] report. Comments due by [DATE]."<br><br>
+                                AB tracks who has reviewed and follows up on missing reviews.
+                            </div>
+                        </div>
+                        <div class="task-card">
+                            <div class="task-owner">ALL TEAM</div>
+                            <div class="task-title">Final Report Review</div>
+                            <div class="task-description">
+                                All team members review complete MASTER documents in <code>/03_Final/</code>.<br><br>
+                                Comments via Track Changes or Trello. 48-hour window.
+                            </div>
+                        </div>
+                        <div class="task-card">
+                            <div class="task-owner">FC</div>
+                            <div class="task-title">Address Final Comments</div>
+                            <div class="task-description">
+                                FC incorporates final feedback and creates the FINAL version:<br><br>
+                                <code style="color: #86efac;">[COMPANY]_FINAL_ES.docx</code><br>
+                                <code style="color: #86efac;">[COMPANY]_FINAL_EN.docx</code>
+                            </div>
+                        </div>
+                        <div class="task-card">
+                            <div class="task-owner">JUNTA (AB, SA, IV, PO)</div>
+                            <div class="task-title">Final Approval</div>
+                            <div class="task-description">
+                                Junta members confirm approval in Trello card with comment "Approved" or flag blocking issues. Minimum 3/4 approval required.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="gate">
+                        <div class="gate-icon">🚦</div>
+                        <div class="gate-info">
+                            <h4>GATE 3: Publication Approval</h4>
+                            <p>Junta sign-off (3/4 minimum) • FINAL files locked • FC notifies AB ready for publication</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Phase 6 -->
+                <div class="phase">
+                    <div class="phase-header">
+                        <div class="phase-number">6</div>
+                        <div class="phase-title">Publication & Promotion</div>
+                        <div class="phase-duration">2-3 days</div>
+                    </div>
+                    
+                    <div class="success-box">
+                        <h4>✅ Publication Handoff Protocol</h4>
+                        <p><strong>FC → AB → IP</strong><br><br>
+                        FC confirms FINAL versions are ready and notifies AB → AB verifies Junta approval is complete → AB sends IP the publication request with exact file paths:<br><br>
+                        <code>/03_Final/[COMPANY]_FINAL_ES.docx</code><br>
+                        <code>/03_Final/[COMPANY]_FINAL_EN.docx</code></p>
+                    </div>
+                    
+                    <div class="phase-content">
+                        <div class="task-card">
+                            <div class="task-owner">AB - Coordinator</div>
+                            <div class="task-title">Send Publication Request to IP</div>
+                            <div class="task-description">
+                                AB sends IP the official publication request including:<br>
+                                • Exact paths to FINAL files<br>
+                                • Confirmation of Junta approval<br>
+                                • Target publication date
+                            </div>
+                        </div>
+                        <div class="task-card">
+                            <div class="task-owner">IP - Website</div>
+                            <div class="task-title">Publish Report</div>
+                            <div class="task-description">
+                                IP uploads ONLY the files from <code>/03_Final/</code> with "FINAL" in the name.<br><br>
+                                Configures access controls, tests download links, confirms publication.
+                            </div>
+                        </div>
+                        <div class="task-card">
+                            <div class="task-owner">AM - Marketing</div>
+                            <div class="task-title">Launch Campaign</div>
+                            <div class="task-description">
+                                Email announcement, social media posts, subscriber notification. Coordinates timing with IP.
+                            </div>
+                        </div>
+                        <div class="task-card">
+                            <div class="task-owner">AB - Coordinator</div>
+                            <div class="task-title">Archive Project</div>
+                            <div class="task-description">
+                                Move Trello card to "Completed". Add link to published report. Document any lessons learned.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+        
+        <!-- NAMING TAB -->
+        <div id="naming" class="content">
+            <h2 style="color: #d4a373; margin-bottom: 20px;">📁 Folder Structure & Naming Conventions</h2>
+            
+            <div class="naming-section">
+                <h3 class="naming-title">📂 Master Folder Structure</h3>
+                <div class="code-block">
+<span class="code-comment"># Location: IGAN Shared Drive</span>
+
+/TBG_[COMPANY]_[YYYY-MM]/
+│
+├── /01_Source_Data/          <span class="code-comment"># Raw materials collected by FC</span>
+│   ├── Annual_Reports/
+│   ├── Technical_Reports/
+│   ├── Press_Releases/
+│   └── Source_Index.xlsx     <span class="code-comment"># List of all materials</span>
+│
+├── /02_Working/              <span class="code-comment"># SME working files (Phase 2)</span>
+│   ├── /MB/                  <span class="code-comment"># Monica's geology files</span>
+│   │   ├── Archive/          <span class="code-comment"># Old versions</span>
+│   │   └── [current files]
+│   ├── /IV/                  <span class="code-comment"># Ignacio's mining files</span>
+│   ├── /SA/                  <span class="code-comment"># Sergio's metallurgy files</span>
+│   ├── /IL/                  <span class="code-comment"># Iñaki's risk/ESG files</span>
+│   ├── /PO/                  <span class="code-comment"># Paloma's management files</span>
+│   └── /FC/                  <span class="code-comment"># Francisco's finance files</span>
+│
+└── /03_Final/                <span class="code-comment"># MASTER and FINAL versions only</span>
+    ├── [COMPANY]_MASTER_v1_ES.docx
+    ├── [COMPANY]_MASTER_v1_EN.docx
+    ├── [COMPANY]_MASTER_v2_ES.docx    <span class="code-comment"># After QA</span>
+    ├── [COMPANY]_MASTER_v2_EN.docx
+    ├── [COMPANY]_FINAL_ES.docx        <span class="code-comment"># ← FOR PUBLICATION</span>
+    └── [COMPANY]_FINAL_EN.docx        <span class="code-comment"># ← FOR PUBLICATION</span>
+                </div>
+            </div>
+            
+            <div class="naming-section">
+                <h3 class="naming-title">📄 Document Naming Convention</h3>
+                <div class="code-block">
+<span class="code-comment"># Working Files (Phase 2) - in /02_Working/[INITIALS]/</span>
+
+[COMPANY]_[Section]_[INITIALS]_v[X]_[LANG].docx
+
+Examples:
+SIGMA_Geology_MB_v1_ES.docx
+SIGMA_Geology_MB_v1_EN.docx
+SIGMA_Geology_MB_v2_ES.docx    <span class="code-comment"># Updated version</span>
+SIGMA_Mining_IV_v1_ES.docx
+SIGMA_RiskESG_IL_v3_EN.docx
+SIGMA_Management_PO_v1_ES.docx
+SIGMA_Finance_FC_v2_EN.docx
+
+<span class="code-comment"># Section Names:</span>
+Geology, Mining, Metallurgy, RiskESG, Management, Finance
+
+<span class="code-comment"># Languages:</span>
+ES = Spanish, EN = English
+                </div>
+                
+                <div class="code-block">
+<span class="code-comment"># Master Files (Phase 3+) - in /03_Final/</span>
+
+[COMPANY]_MASTER_v[X]_[LANG].docx
+
+Examples:
+SIGMA_MASTER_v1_ES.docx     <span class="code-comment"># First integrated version</span>
+SIGMA_MASTER_v1_EN.docx
+SIGMA_MASTER_v2_ES.docx     <span class="code-comment"># After QA corrections</span>
+SIGMA_MASTER_v2_EN.docx
+
+<span class="code-comment"># Final Files (Phase 5) - ONLY these get published</span>
+
+[COMPANY]_FINAL_[LANG].docx
+
+Examples:
+SIGMA_FINAL_ES.docx         <span class="code-comment"># ← PUBLISH THIS</span>
+SIGMA_FINAL_EN.docx         <span class="code-comment"># ← PUBLISH THIS</span>
+                </div>
+            </div>
+            
+            <div class="naming-section">
+                <h3 class="naming-title">🔢 Version Control Rules</h3>
+                <div style="display: grid; gap: 15px;">
+                    <div class="task-card">
+                        <div class="task-title">Rule 1: Increment on Save</div>
+                        <div class="task-description">Every time you make significant changes, save as new version: v1 → v2 → v3. Never overwrite.</div>
+                    </div>
+                    <div class="task-card">
+                        <div class="task-title">Rule 2: Archive Old Versions</div>
+                        <div class="task-description">Move previous versions to <code>/Archive/</code> subfolder. Highest version in main folder = current.</div>
+                    </div>
+                    <div class="task-card">
+                        <div class="task-title">Rule 3: No Offline Copies</div>
+                        <div class="task-description">Always work from the shared drive. If you need offline access, use folder sync (OneDrive/Google Drive sync) — don't download separate copies.</div>
+                    </div>
+                    <div class="task-card">
+                        <div class="task-title">Rule 4: Mark in Trello</div>
+                        <div class="task-description">When you upload a new version, comment in Trello: "Uploaded v2 of [Section] - [brief note of changes]"</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="rules-box">
+                <h3>🚫 Common Mistakes to Avoid</h3>
+                <ul>
+                    <li><strong>DON'T:</strong> Download files to your desktop and edit offline</li>
+                    <li><strong>DON'T:</strong> Name files with dates like "SIGMA_Geology_MB_15Jan.docx"</li>
+                    <li><strong>DON'T:</strong> Save files outside the project folder structure</li>
+                    <li><strong>DON'T:</strong> Overwrite existing files without incrementing version</li>
+                    <li><strong>DON'T:</strong> Send files via email/WhatsApp instead of using shared drive</li>
+                    <li><strong>DO:</strong> Always check you're editing the highest version number</li>
+                </ul>
+            </div>
+            
+            <div class="naming-section">
+                <h3 class="naming-title">📍 Which File to Publish?</h3>
+                <div style="background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 8px; padding: 20px; text-align: center;">
+                    <p style="color: #86efac; font-size: 1.2rem; margin-bottom: 10px;">IP only publishes files with "FINAL" in the name</p>
+                    <div class="code-block" style="display: inline-block; text-align: left;">
+/03_Final/[COMPANY]_FINAL_ES.docx
+/03_Final/[COMPANY]_FINAL_EN.docx
+                    </div>
+                    <p style="color: #94a3b8; margin-top: 15px; font-size: 0.9rem;">
+                        If a file doesn't have "FINAL" in the name → it's not ready for publication
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- REPORT STRUCTURE TAB -->
+        <div id="structure" class="content">
+            <h2 style="color: #d4a373; margin-bottom: 20px;">📄 Report Structure & Section Ownership</h2>
+            
+            <div class="info-box">
+                <h4>📊 Industry Standard</h4>
+                <p>Initiating coverage reports (comprehensive first-time analysis) typically range from <strong>50-100+ pages</strong>. TBG's target of 50-70 pages is well within industry norms. Quality over arbitrary page limits.</p>
+            </div>
+            
+            <div class="report-structure">
+                <div class="section-item">
+                    <div class="section-num">1</div>
+                    <div class="section-info">
+                        <h4>Introduction</h4>
+                        <p>Company overview, investment summary, key metrics</p>
+                    </div>
+                    <div class="section-owner">FC</div>
+                </div>
+                
+                <div class="section-item">
+                    <div class="section-num">2</div>
+                    <div class="section-info">
+                        <h4>Commodity Section</h4>
+                        <p>Market overview, supply/demand dynamics, price trends</p>
+                    </div>
+                    <div class="section-owner">FC + SA</div>
+                </div>
+                
+                <div class="section-item">
+                    <div class="section-num">3</div>
+                    <div class="section-info">
+                        <h4>Relevant Accolades</h4>
+                        <p>Awards, certifications, industry recognition</p>
+                    </div>
+                    <div class="section-owner">FC</div>
+                </div>
+                
+                <div class="section-item">
+                    <div class="section-num">4</div>
+                    <div class="section-info">
+                        <h4>Risks & Opportunities Summary</h4>
+                        <p>Executive summary of key risks and opportunities</p>
+                    </div>
+                    <div class="section-owner">FC + IL</div>
+                </div>
+                
+                <div class="section-item">
+                    <div class="section-num">5</div>
+                    <div class="section-info">
+                        <h4>Risks (Detailed)</h4>
+                        <p>Comprehensive risk analysis: operational, financial, regulatory, ESG</p>
+                    </div>
+                    <div class="section-owner">IL</div>
+                </div>
+                
+                <div class="section-item">
+                    <div class="section-num">6</div>
+                    <div class="section-info">
+                        <h4>Opportunities (Detailed)</h4>
+                        <p>Growth drivers, expansion potential, market positioning</p>
+                    </div>
+                    <div class="section-owner">FC + IL</div>
+                </div>
+                
+                <div class="section-item" style="border-left: 3px solid #d4a373;">
+                    <div class="section-num" style="background: #d4a373; color: #1a1a2e;">7</div>
+                    <div class="section-info">
+                        <h4>Detailed Technical Report</h4>
+                        <p>In-depth analysis by subject matter area</p>
+                    </div>
+                    <div class="section-owner">All SMEs</div>
+                </div>
+                
+                <div class="section-item" style="margin-left: 30px; border-left: 2px solid rgba(212, 163, 115, 0.3);">
+                    <div class="section-num" style="font-size: 0.8rem;">7a</div>
+                    <div class="section-info">
+                        <h4>Geology</h4>
+                        <p>Resource estimates, deposit characteristics, exploration</p>
+                    </div>
+                    <div class="section-owner">MB</div>
+                </div>
+                
+                <div class="section-item" style="margin-left: 30px; border-left: 2px solid rgba(212, 163, 115, 0.3);">
+                    <div class="section-num" style="font-size: 0.8rem;">7b</div>
+                    <div class="section-info">
+                        <h4>Mining</h4>
+                        <p>Extraction methods, operations, production capacity</p>
+                    </div>
+                    <div class="section-owner">IV</div>
+                </div>
+                
+                <div class="section-item" style="margin-left: 30px; border-left: 2px solid rgba(212, 163, 115, 0.3);">
+                    <div class="section-num" style="font-size: 0.8rem;">7c</div>
+                    <div class="section-info">
+                        <h4>Metallurgy</h4>
+                        <p>Processing methods, recovery rates, product quality</p>
+                    </div>
+                    <div class="section-owner">SA</div>
+                </div>
+                
+                <div class="section-item" style="margin-left: 30px; border-left: 2px solid rgba(212, 163, 115, 0.3);">
+                    <div class="section-num" style="font-size: 0.8rem;">7d</div>
+                    <div class="section-info">
+                        <h4>ESG & Sustainability</h4>
+                        <p>Environmental compliance, social license, governance</p>
+                    </div>
+                    <div class="section-owner">IL</div>
+                </div>
+                
+                <div class="section-item" style="margin-left: 30px; border-left: 2px solid rgba(212, 163, 115, 0.3);">
+                    <div class="section-num" style="font-size: 0.8rem;">7e</div>
+                    <div class="section-info">
+                        <h4>Leadership & Management</h4>
+                        <p>Executive team, track record, organizational capability</p>
+                    </div>
+                    <div class="section-owner">PO</div>
+                </div>
+                
+                <div class="section-item" style="margin-left: 30px; border-left: 2px solid rgba(212, 163, 115, 0.3);">
+                    <div class="section-num" style="font-size: 0.8rem;">7f</div>
+                    <div class="section-info">
+                        <h4>Financial Analysis</h4>
+                        <p>Financial statements, metrics, comparable analysis</p>
+                    </div>
+                    <div class="section-owner">FC</div>
+                </div>
+                
+                <div class="section-item" style="background: rgba(212, 163, 115, 0.1);">
+                    <div class="section-num" style="background: #d4a373; color: #1a1a2e;">8</div>
+                    <div class="section-info">
+                        <h4>Valuation & Conclusion</h4>
+                        <p>Valuation model, price target, investment recommendation</p>
+                    </div>
+                    <div class="section-owner">FC (Last)</div>
+                </div>
+            </div>
+            
+            <div class="rules-box" style="margin-top: 20px;">
+                <h3>⏰ Dependency: Valuation Must Be Last</h3>
+                <ul>
+                    <li>FC cannot finalize Section 8 (Valuation & Conclusion) until Sections 1-7 are substantially complete</li>
+                    <li>The conclusion synthesizes findings from ALL other sections</li>
+                    <li>Timeline should account for this dependency: Phase 4 cannot start until Phase 3 integration is complete</li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- TEAM TAB -->
+        <div id="team" class="content">
+            <h2 style="color: #d4a373; margin-bottom: 20px;">Team Structure & Approval Groups</h2>
+            
+            <div style="background: rgba(255,255,255,0.03); border-radius: 10px; padding: 20px; margin-bottom: 25px;">
+                <h3 style="color: #fff; margin-bottom: 15px;">Approval Groups</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                    <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 15px;">
+                        <h4 style="color: #fca5a5;">🏛️ Junta (Decision Makers)</h4>
+                        <p style="color: #94a3b8; font-size: 0.85rem; margin-top: 8px;">AB, SA, IV, PO</p>
+                        <p style="color: #94a3b8; font-size: 0.75rem; margin-top: 5px;">Final publication approval (Gate 3). 3/4 minimum.</p>
+                    </div>
+                    <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; padding: 15px;">
+                        <h4 style="color: #93c5fd;">⚙️ Group 1 (Technical)</h4>
+                        <p style="color: #94a3b8; font-size: 0.85rem; margin-top: 8px;">SA, IV, FC, MB</p>
+                        <p style="color: #94a3b8; font-size: 0.75rem; margin-top: 5px;">Technical cross-review (Gate 1)</p>
+                    </div>
+                    <div style="background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 8px; padding: 15px;">
+                        <h4 style="color: #86efac;">🌿 Group 2 (Governance)</h4>
+                        <p style="color: #94a3b8; font-size: 0.85rem; margin-top: 8px;">PO, IL</p>
+                        <p style="color: #94a3b8; font-size: 0.75rem; margin-top: 5px;">Integration coherence (Gate 2)</p>
+                    </div>
+                    <div style="background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 8px; padding: 15px;">
+                        <h4 style="color: #d8b4fe;">📣 Group 3 (External)</h4>
+                        <p style="color: #94a3b8; font-size: 0.85rem; margin-top: 8px;">AB, AM, IP</p>
+                        <p style="color: #94a3b8; font-size: 0.75rem; margin-top: 5px;">Publication & marketing</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="team-grid">
+                <div class="team-card">
+                    <div class="team-initials">IP</div>
+                    <div class="team-name">Íñigo Petit</div>
+                    <div class="team-role">Website & Marketing • Workflow Trigger</div>
+                    <div class="team-groups">
+                        <span class="group-tag g3">Group 3</span>
+                    </div>
+                    <p style="font-size: 0.75rem; color: #94a3b8; margin-top: 10px;">Monitors community votes → Triggers workflow</p>
+                </div>
+                <div class="team-card">
+                    <div class="team-initials">AB</div>
+                    <div class="team-name">Amadeu Bonet</div>
+                    <div class="team-role">Coordinator</div>
+                    <div class="team-groups">
+                        <span class="group-tag junta">Junta</span>
+                        <span class="group-tag g3">Group 3</span>
+                    </div>
+                    <p style="font-size: 0.75rem; color: #94a3b8; margin-top: 10px;">Responsible for final review coordination & publication handoff</p>
+                </div>
+                <div class="team-card">
+                    <div class="team-initials">FC</div>
+                    <div class="team-name">Francisco Castellano</div>
+                    <div class="team-role">Finance Expert & Report Compiler</div>
+                    <div class="team-groups">
+                        <span class="group-tag g1">Group 1</span>
+                    </div>
+                    <p style="font-size: 0.75rem; color: #94a3b8; margin-top: 10px;">Creates folders, compiles MASTER, writes FINAL</p>
+                </div>
+                <div class="team-card">
+                    <div class="team-initials">SA</div>
+                    <div class="team-name">Sergio Arenas</div>
+                    <div class="team-role">Metallurgy Expert</div>
+                    <div class="team-groups">
+                        <span class="group-tag junta">Junta</span>
+                        <span class="group-tag g1">Group 1</span>
+                    </div>
+                </div>
+                <div class="team-card">
+                    <div class="team-initials">IV</div>
+                    <div class="team-name">Ignacio Vélez</div>
+                    <div class="team-role">Mining Expert</div>
+                    <div class="team-groups">
+                        <span class="group-tag junta">Junta</span>
+                        <span class="group-tag g1">Group 1</span>
+                    </div>
+                </div>
+                <div class="team-card">
+                    <div class="team-initials">MB</div>
+                    <div class="team-name">Mónica Barrero</div>
+                    <div class="team-role">Geology Expert</div>
+                    <div class="team-groups">
+                        <span class="group-tag g1">Group 1</span>
+                    </div>
+                </div>
+                <div class="team-card">
+                    <div class="team-initials">PO</div>
+                    <div class="team-name">Paloma Ortiz-López</div>
+                    <div class="team-role">Leadership & Management Expert / Internal HR</div>
+                    <div class="team-groups">
+                        <span class="group-tag junta">Junta</span>
+                        <span class="group-tag g2">Group 2</span>
+                    </div>
+                    <p style="font-size: 0.75rem; color: #94a3b8; margin-top: 10px;">English QA Lead (Phase 4)</p>
+                </div>
+                <div class="team-card">
+                    <div class="team-initials">IL</div>
+                    <div class="team-name">Iñaki Lorenzo</div>
+                    <div class="team-role">Risk & ESG Expert</div>
+                    <div class="team-groups">
+                        <span class="group-tag g2">Group 2</span>
+                    </div>
+                </div>
+                <div class="team-card">
+                    <div class="team-initials">AM</div>
+                    <div class="team-name">Ángel Martín</div>
+                    <div class="team-role">Marketing Expert</div>
+                    <div class="team-groups">
+                        <span class="group-tag g3">Group 3</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- RACI TAB -->
+        <div id="raci" class="content">
+            <h2 style="color: #d4a373; margin-bottom: 20px;">RACI Matrix</h2>
+            <div class="raci-container">
+                <table class="raci-table">
+                    <thead>
+                        <tr>
+                            <th>Task / Deliverable</th>
+                            <th>IP</th>
+                            <th>AB</th>
+                            <th>FC</th>
+                            <th>SA</th>
+                            <th>IV</th>
+                            <th>MB</th>
+                            <th>PO</th>
+                            <th>IL</th>
+                            <th>AM</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Monitor Community Voting</td>
+                            <td class="raci-r">R</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                        </tr>
+                        <tr>
+                            <td>Trigger Workflow (notify AB, FC)</td>
+                            <td class="raci-r">R</td>
+                            <td class="raci-a">A</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                        </tr>
+                        <tr>
+                            <td>Create Folder Structure</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-a">A</td>
+                            <td class="raci-r">R</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                        </tr>
+                        <tr>
+                            <td>Compile Public Information</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-r">R</td>
+                            <td class="raci-c">C</td>
+                            <td class="raci-c">C</td>
+                            <td class="raci-c">C</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                        </tr>
+                        <tr>
+                            <td>Create Trello Card & Timeline</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-a">A</td>
+                            <td class="raci-r">R</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                        </tr>
+                        <tr>
+                            <td>Geology Section (ES + EN)</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-a">A</td>
+                            <td class="raci-c">C</td>
+                            <td class="raci-c">C</td>
+                            <td class="raci-r">R</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                        </tr>
+                        <tr>
+                            <td>Mining Section (ES + EN)</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-a">A</td>
+                            <td class="raci-c">C</td>
+                            <td class="raci-r">R</td>
+                            <td class="raci-c">C</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                        </tr>
+                        <tr>
+                            <td>Metallurgy Section (ES + EN)</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-a">A</td>
+                            <td class="raci-r">R</td>
+                            <td class="raci-c">C</td>
+                            <td class="raci-c">C</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                        </tr>
+                        <tr>
+                            <td>Risk/ESG Section (ES + EN)</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-a">A</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-c">C</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-c">C</td>
+                            <td class="raci-r">R</td>
+                            <td class="raci-i">I</td>
+                        </tr>
+                        <tr>
+                            <td>Management Section (ES + EN)</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-a">A</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-r">R</td>
+                            <td class="raci-c">C</td>
+                            <td class="raci-i">I</td>
+                        </tr>
+                        <tr>
+                            <td>Finance Section (ES + EN)</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-r">R</td>
+                            <td class="raci-c">C</td>
+                            <td class="raci-c">C</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-c">C</td>
+                            <td class="raci-i">I</td>
+                        </tr>
+                        <tr>
+                            <td>Gate 1: Technical Review</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-r">R</td>
+                            <td class="raci-r">R</td>
+                            <td class="raci-r">R</td>
+                            <td class="raci-r">R</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                        </tr>
+                        <tr>
+                            <td>Create MASTER Documents</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-a">A</td>
+                            <td class="raci-r">R</td>
+                            <td class="raci-c">C</td>
+                            <td class="raci-c">C</td>
+                            <td class="raci-c">C</td>
+                            <td class="raci-c">C</td>
+                            <td class="raci-c">C</td>
+                            <td class="raci-i">I</td>
+                        </tr>
+                        <tr>
+                            <td>Gate 2: Integration Check</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-c">C</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-r">R</td>
+                            <td class="raci-r">R</td>
+                            <td class="raci-i">I</td>
+                        </tr>
+                        <tr>
+                            <td>Valuation & Conclusion</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-r">R</td>
+                            <td class="raci-c">C</td>
+                            <td class="raci-c">C</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-c">C</td>
+                            <td class="raci-i">I</td>
+                        </tr>
+                        <tr>
+                            <td>English QA Review</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-a">A</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-c">C</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-r">R</td>
+                            <td class="raci-c">C</td>
+                            <td class="raci-i">I</td>
+                        </tr>
+                        <tr>
+                            <td>Coordinate Final Review</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-r">R</td>
+                            <td class="raci-c">C</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                        </tr>
+                        <tr>
+                            <td>Create FINAL Documents</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-a">A</td>
+                            <td class="raci-r">R</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                        </tr>
+                        <tr>
+                            <td>Gate 3: Junta Approval</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-r">R</td>
+                            <td class="raci-c">C</td>
+                            <td class="raci-r">R</td>
+                            <td class="raci-r">R</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-r">R</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                        </tr>
+                        <tr>
+                            <td>Send Publication Request</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-r">R</td>
+                            <td class="raci-c">C</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                        </tr>
+                        <tr>
+                            <td>Publish Report</td>
+                            <td class="raci-r">R</td>
+                            <td class="raci-a">A</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-c">C</td>
+                        </tr>
+                        <tr>
+                            <td>Marketing Campaign</td>
+                            <td class="raci-c">C</td>
+                            <td class="raci-a">A</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-i">I</td>
+                            <td class="raci-r">R</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="legend">
+                <div class="legend-item"><span class="raci-r">R</span> = Responsible (does the work)</div>
+                <div class="legend-item"><span class="raci-a">A</span> = Accountable (final decision)</div>
+                <div class="legend-item"><span class="raci-c">C</span> = Consulted (provides input)</div>
+                <div class="legend-item"><span class="raci-i">I</span> = Informed (kept updated)</div>
+            </div>
+        </div>
+        
+        <!-- CHECKLIST TAB -->
+        <div id="checklist" class="content">
+            <h2 style="color: #d4a373; margin-bottom: 20px;">Quality Gate Checklists</h2>
+            
+            <div class="checklist-section">
+                <h3 class="checklist-title">🚦 Gate 0: Workflow Trigger (IP → AB)</h3>
+                <div class="checklist-item">
+                    <input type="checkbox" id="g0-1">
+                    <label for="g0-1">Community vote results compiled</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="g0-2">
+                    <label for="g0-2">Company name and ticker confirmed</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="g0-3">
+                    <label for="g0-3">IP notified AB and FC via agreed channel</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="g0-4">
+                    <label for="g0-4">AB acknowledged workflow initiation</label>
+                </div>
+            </div>
+            
+            <div class="checklist-section">
+                <h3 class="checklist-title">📁 Phase 1: Project Setup (FC)</h3>
+                <div class="checklist-item">
+                    <input type="checkbox" id="p1-1">
+                    <label for="p1-1">Master folder created: <code>/TBG_[COMPANY]_[YYYY-MM]/</code></label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="p1-2">
+                    <label for="p1-2">Subfolders created: <code>/01_Source_Data/</code>, <code>/02_Working/</code>, <code>/03_Final/</code></label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="p1-3">
+                    <label for="p1-3">SME working folders created in <code>/02_Working/</code></label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="p1-4">
+                    <label for="p1-4">Source materials gathered and indexed</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="p1-5">
+                    <label for="p1-5">Trello card created with all assignments</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="p1-6">
+                    <label for="p1-6">Timeline milestones set by AB</label>
+                </div>
+            </div>
+            
+            <div class="checklist-section">
+                <h3 class="checklist-title">🚦 Gate 1: Technical Review (Group 1: SA, IV, FC, MB)</h3>
+                <div class="checklist-item">
+                    <input type="checkbox" id="g1-1">
+                    <label for="g1-1">Geology section uploaded (ES + EN) by MB</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="g1-2">
+                    <label for="g1-2">Mining section uploaded (ES + EN) by IV</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="g1-3">
+                    <label for="g1-3">Metallurgy section uploaded (ES + EN) by SA</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="g1-4">
+                    <label for="g1-4">Finance section uploaded (ES + EN) by FC</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="g1-5">
+                    <label for="g1-5">Risk/ESG section uploaded (ES + EN) by IL</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="g1-6">
+                    <label for="g1-6">Management section uploaded (ES + EN) by PO</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="g1-7">
+                    <label for="g1-7">Technical data cross-verified (no conflicts)</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="g1-8">
+                    <label for="g1-8">All Trello tasks marked complete by SMEs</label>
+                </div>
+            </div>
+            
+            <div class="checklist-section">
+                <h3 class="checklist-title">🚦 Gate 2: Integration Check (Group 2: PO, IL)</h3>
+                <div class="checklist-item">
+                    <input type="checkbox" id="g2-1">
+                    <label for="g2-1">MASTER_v1_ES created in <code>/03_Final/</code></label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="g2-2">
+                    <label for="g2-2">MASTER_v1_EN created in <code>/03_Final/</code></label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="g2-3">
+                    <label for="g2-3">All sections integrated in correct order</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="g2-4">
+                    <label for="g2-4">Narrative flows logically between sections</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="g2-5">
+                    <label for="g2-5">Terminology consistent throughout</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="g2-6">
+                    <label for="g2-6">PO and IL both confirm coherence</label>
+                </div>
+            </div>
+            
+            <div class="checklist-section">
+                <h3 class="checklist-title">🚦 Gate 3: Publication Approval (Junta: AB, SA, IV, PO)</h3>
+                <div class="checklist-item">
+                    <input type="checkbox" id="g3-1">
+                    <label for="g3-1">Valuation & Conclusion complete</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="g3-2">
+                    <label for="g3-2">English QA completed by PO</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="g3-3">
+                    <label for="g3-3">Bilingual consistency verified (IV, IL)</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="g3-4">
+                    <label for="g3-4">All team final review completed (48hr window)</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="g3-5">
+                    <label for="g3-5">All comments addressed by FC</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="g3-6">
+                    <label for="g3-6">FINAL_ES and FINAL_EN created</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="g3-7">
+                    <label for="g3-7">AB approved ✓</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="g3-8">
+                    <label for="g3-8">SA approved ✓</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="g3-9">
+                    <label for="g3-9">IV approved ✓</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="g3-10">
+                    <label for="g3-10">PO approved ✓</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="g3-11">
+                    <label for="g3-11">Minimum 3/4 Junta approval achieved</label>
+                </div>
+            </div>
+            
+            <div class="checklist-section">
+                <h3 class="checklist-title">📣 Publication Handoff (AB → IP)</h3>
+                <div class="checklist-item">
+                    <input type="checkbox" id="pub-1">
+                    <label for="pub-1">AB sent publication request to IP with exact file paths</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="pub-2">
+                    <label for="pub-2">Files in <code>/03_Final/</code> have "FINAL" in filename</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="pub-3">
+                    <label for="pub-3">IP uploaded to website</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="pub-4">
+                    <label for="pub-4">Download links tested</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="pub-5">
+                    <label for="pub-5">AM notified for marketing launch</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="pub-6">
+                    <label for="pub-6">Trello card moved to Completed</label>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function showTab(tabId) {
+            document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+        }
+        
+        // Save checkbox state to localStorage
+        document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+            const saved = localStorage.getItem('tbg_' + cb.id);
+            if (saved === 'true') cb.checked = true;
+            cb.addEventListener('change', () => {
+                localStorage.setItem('tbg_' + cb.id, cb.checked);
+            });
+        });
+    </script>
+</body>
+</html>
